@@ -1,0 +1,120 @@
+{
+	"config": {
+		"teleport": {
+			"prod": {
+				"proxy": "prod.sample-site.com",
+				"user": "johny",
+				"ttl": "30",
+				"cluster": "prod"
+			},
+			"dev": {
+				"proxy": "dev.sample-site.com",
+				"user": "johny",
+				"ttl": "30",
+				"cluster": "dev"
+			}
+		}
+	},
+	"connections": [
+		{
+			"command": "prod",
+			"groups": [
+				{
+					"name": "KUBE",
+					"connections": [
+						{
+							"name": "sample1",
+							"config": {
+								"type": "kubernetes",
+								"teleport": "prod",
+								"namespace": "web",
+								"pod": "service/php",
+								"container": "php-fpm",
+								"command": "bash"
+							}
+						},
+						{
+							"name": "sample2",
+							"config": {
+								"type": "kubernetes",
+								"teleport": "prod",
+								"namespace": "api",
+								"pod": "service/php",
+								"container": "php-fpm",
+								"command": "bash"
+							}
+						}
+					]
+				},
+				{
+					"name": "SSH",
+					"connections": [
+						{
+							"name": "web",
+							"config": {
+								"type": "ssh",
+								"host": "sample-site.com",
+								"user": "root",
+								"params": "-L 3306:localhost:3306"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"command": "dev",
+			"groups": [
+				{
+					"name": "KUBE",
+					"connections": [
+						{
+							"name": "samplesite",
+							"config": {
+								"type": "kubernetes",
+								"teleport": "dev",
+								"namespace": "web",
+								"pod": "service/php",
+								"container": "php-fpm",
+								"command": "bash"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"command": "rlocal",
+			"groups": [
+				{
+					"name": "DOCKER",
+					"connections": [
+						{
+							"name": "web",
+							"config": {
+								"type": "docker",
+								"container": "local_php_1",
+								"command": "bash"
+							}
+						},
+						{
+							"name": "weblog",
+							"config": {
+								"type": "raw",
+								"command": "docker logs -f --tail 2000 local_php_1"
+							}
+						},
+						{
+							"name": "webcomposer",
+							"config": {
+								"type": "docker",
+								"container": "local_php_1",
+								"command": "composer install && composer dump-autoload -o"
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}
